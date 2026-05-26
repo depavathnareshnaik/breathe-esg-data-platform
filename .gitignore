@@ -1,0 +1,35 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+
+# Node
+node_modules/
+dist/
+
+# Env
+.env
+.env.local
+
+# Mac
+.DS_Store
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+
+# Docker
+postgres_data/
+
+# Build
+coverage/
+
+# Cache
+.cache

@@ -1,0 +1,6 @@
+BookingID,TravelDate,Mode,Distance_miles,HotelNights,SupplierName
+TRV-FL-001,2026-05-02,Flight,1500,,Delta
+TRV-HT-002,2026-05-03,Hotel,,4,Marriott
+TRV-MS-003,2026-05-04,Train,250,,Eurostar
+TRV-FL-004,2026-05-05,Flight,,,United
+TRV-FL-005,2026-07-15,Flight,800,,American Airlines

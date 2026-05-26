@@ -1,0 +1,6 @@
+TransactionID,PostingDate,GLAccount,Description,Quantity,Unit
+TX001,2026-05-01,400100,Diesel Purchase,1000,L
+TX002,2026-05-02,400101,Petrol Purchase,500,L
+TX003,2026-05-03,400102,Natural Gas Purchase,300,m3
+TX004,2026-05-04,400103,Diesel Refund,-100,L
+TX005,2026-05-05,400104,Large Fuel Order,15000,L
