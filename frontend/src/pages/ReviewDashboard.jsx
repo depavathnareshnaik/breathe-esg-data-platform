@@ -36,10 +36,8 @@ export default function ReviewDashboard() {
       });
       setRecords(data.results || data);
       
-      // Calculate dashboard metrics based on overall records
-      // Realistically we can query these from an API, or compute from retrieved records
-      // Since it's a prototype, computing client-side from the tenant's current records list is clean and sufficient
-      const allData = await api.getRecords(); // Get all (unfiltered) to compute correct metrics
+      // Calculate metrics from full record set
+      const allData = await api.getRecords();
       const list = allData.results || allData;
       
       const total = list.length;
@@ -47,7 +45,6 @@ export default function ReviewDashboard() {
       const flagged = list.filter(r => r.status === 'FLAGGED').length;
       const approved = list.filter(r => r.status === 'APPROVED').length;
       
-      // Calculate approved emissions
       const emissionsSum = list
         .filter(r => r.status === 'APPROVED' && r.co2e_emissions)
         .reduce((sum, r) => sum + parseFloat(r.co2e_emissions), 0);
@@ -61,7 +58,7 @@ export default function ReviewDashboard() {
       });
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch records. Try logging in again.');
+      setError('Failed to fetch records. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -77,9 +74,9 @@ export default function ReviewDashboard() {
   };
 
   const handleQuickApprove = async (id, e) => {
-    e.stopPropagation(); // Avoid triggering row click navigation
+    e.stopPropagation();
     const comment = prompt("Enter optional verification note:", "Approved via dashboard quick action");
-    if (comment === null) return; // User cancelled prompt
+    if (comment === null) return;
 
     try {
       await api.approveRecord(id, comment);
@@ -113,14 +110,14 @@ export default function ReviewDashboard() {
       <div className="mb-40 flex justify-between align-center">
         <div>
           <h1>Review Dashboard</h1>
-          <p>Inspect parsed datasets, examine validation flags, and approve immutable records.</p>
+          <p style={{ color: 'var(--text-secondary)' }}>Inspect parsed datasets, examine validation flags, and approve immutable records.</p>
         </div>
         <button onClick={fetchRecords} className="btn btn-secondary">
           🔄 Refresh Log
         </button>
       </div>
 
-      {/* Metrics Row */}
+      {/* Metrics Grid */}
       <div className="grid-4 mb-40">
         <div className="glass-card">
           <div style={metricTitleStyle}>Total Datapoints</div>
@@ -146,8 +143,8 @@ export default function ReviewDashboard() {
         </div>
       </div>
 
-      {/* Filters Card */}
-      <div className="glass-card mb-20" style={{ padding: '16px 24px' }}>
+      {/* Filter Options */}
+      <div className="glass-card mb-20" style={{ padding: '16px 20px' }}>
         <form onSubmit={handleSearchSubmit} style={filterContainerStyle}>
           <div style={filterItemStyle}>
             <label className="form-label" style={filterLabelStyle}>Keyword Search</label>
@@ -213,22 +210,10 @@ export default function ReviewDashboard() {
         </form>
       </div>
 
-      {/* Records Log Table */}
       {error && <div className="error-card">⚠️ {error}</div>}
 
+      {/* Main Records Log */}
       {loading ? (
-        <div className="glass-card" style={loadingCardStyle}>
-          <span>⌛ Loading Records Ledger...</span>
-        </div>
-      ) : records.length === 0 ? (
-        <div className="glass-card" style={emptyCardStyle}>
-          <span>📋</span>
-          <h4>No Records Found</h4>
-          <p style={{ fontSize: '0.85rem', marginTop: '4px' }}>
-            No records matched your filters. Upload fresh files or reset filter choices.
-          </p>
-        </div>
-      ) : (
         <div className="table-container">
           <table>
             <thead>
@@ -246,13 +231,56 @@ export default function ReviewDashboard() {
               </tr>
             </thead>
             <tbody>
+              {[...Array(5)].map((_, idx) => (
+                <tr key={idx}>
+                  <td><div className="skeleton" style={{ height: '20px', width: '80px' }}></div></td>
+                  <td><div className="skeleton" style={{ height: '20px', width: '60px' }}></div></td>
+                  <td><div className="skeleton" style={{ height: '18px', width: '110px' }}></div></td>
+                  <td><div className="skeleton" style={{ height: '18px', width: '80px' }}></div></td>
+                  <td><div className="skeleton" style={{ height: '18px', width: '90px' }}></div></td>
+                  <td><div className="skeleton" style={{ height: '18px', width: '80px' }}></div></td>
+                  <td><div className="skeleton" style={{ height: '18px', width: '40px' }}></div></td>
+                  <td><div className="skeleton" style={{ height: '18px', width: '80px' }}></div></td>
+                  <td><div className="skeleton" style={{ height: '18px', width: '60px' }}></div></td>
+                  <td style={{ textAlign: 'right' }}><div className="skeleton" style={{ height: '26px', width: '110px', marginLeft: 'auto' }}></div></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : records.length === 0 ? (
+        <div className="glass-card" style={emptyCardStyle}>
+          <span style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📋</span>
+          <h4>No Records Found</h4>
+          <p style={{ fontSize: '0.85rem', marginTop: '4px', color: 'var(--text-secondary)' }}>
+            No records matched your filters. Upload fresh files or reset filter choices.
+          </p>
+        </div>
+      ) : (
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Scope</th>
+                <th>Category</th>
+                <th>Activity</th>
+                <th>Quantity</th>
+                <th>Date</th>
+                <th>Confidence</th>
+                <th>Emissions (kg CO2e)</th>
+                <th>Issues</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {records.map((r) => {
                 const issueCount = r.validation_issues?.length || 0;
                 return (
                   <tr 
                     key={r.id} 
                     onClick={() => navigate(`/records/${r.id}`)}
-                    style={rowStyle}
+                    className="row-interactive"
                   >
                     <td>{getStatusBadge(r.status)}</td>
                     <td>{getScopeBadge(r.scope)}</td>
@@ -278,7 +306,7 @@ export default function ReviewDashboard() {
                           ⚠️ {issueCount} Flag{issueCount > 1 ? 's' : ''}
                         </span>
                       ) : (
-                        <span style={{ color: 'var(--accent-emerald)', fontSize: '0.85rem' }}>✓ Clean</span>
+                        <span style={{ color: 'var(--accent-emerald)', fontSize: '0.85rem', fontWeight: '500' }}>✓ Clean</span>
                       )}
                     </td>
                     <td style={{ textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
@@ -312,9 +340,9 @@ export default function ReviewDashboard() {
   );
 }
 
-// Inline styles for review dashboard elements
+// Inline Styles
 const metricTitleStyle = {
-  fontSize: '0.85rem',
+  fontSize: '0.8rem',
   color: 'var(--text-secondary)',
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
@@ -323,7 +351,7 @@ const metricTitleStyle = {
 };
 
 const metricValueStyle = {
-  fontSize: '2rem',
+  fontSize: '1.85rem',
   fontWeight: '700',
   color: 'var(--text-primary)',
   marginBottom: '4px'
@@ -356,26 +384,13 @@ const searchWrapperStyle = {
   gap: '8px'
 };
 
-const loadingCardStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '60px 0',
-  color: 'var(--text-secondary)'
-};
-
 const emptyCardStyle = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '60px 0',
-  opacity: 0.8
-};
-
-const rowStyle = {
-  cursor: 'pointer',
-  transition: 'var(--transition)'
+  padding: '60px 24px',
+  color: 'var(--text-muted)'
 };
 
 const categoryCellStyle = {
@@ -398,8 +413,8 @@ function confidenceStyle(confidence) {
 }
 
 const issueBadgeStyle = {
-  backgroundColor: 'rgba(244,63,94,0.1)',
-  border: '1px solid rgba(244,63,94,0.2)',
+  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+  border: '1px solid rgba(239, 68, 68, 0.15)',
   color: 'var(--accent-rose)',
   padding: '2px 8px',
   borderRadius: '4px',

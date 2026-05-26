@@ -262,4 +262,14 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         # Strict tenant separation
-        return self.queryset.filter(tenant=self.request.user.profile.tenant)
+        qs = self.queryset.filter(tenant=self.request.user.profile.tenant)
+        search_param = self.request.query_params.get('search')
+        if search_param:
+            qs = qs.filter(
+                models.Q(changed_by__username__icontains=search_param) |
+                models.Q(reason__icontains=search_param) |
+                models.Q(record__id__icontains=search_param) |
+                models.Q(old_values__icontains=search_param) |
+                models.Q(new_values__icontains=search_param)
+            )
+        return qs

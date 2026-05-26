@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { auth } from '../services/api';
 
-export default function Sidebar() {
+export default function Sidebar({ collapsed = false, setCollapsed }) {
   const navigate = useNavigate();
   const user = auth.getUser();
 
@@ -14,58 +14,90 @@ export default function Sidebar() {
   if (!user) return null;
 
   return (
-    <aside className="sidebar">
-      <div style={logoContainerStyle}>
+    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+      <div style={collapsed ? logoContainerCollapsedStyle : logoContainerStyle}>
         <div style={logoGlowStyle}></div>
-        <span style={logoTextStyle}>Breathe ESG</span>
-        <span style={logoSubTextStyle}>Platform</span>
+        {!collapsed ? (
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={logoTextStyle}>Breathe ESG</span>
+            <span style={logoSubTextStyle}>Platform</span>
+          </div>
+        ) : (
+          <span style={{ ...logoTextStyle, fontSize: '1.5rem' }}>B</span>
+        )}
+        <button 
+          onClick={() => setCollapsed(!collapsed)} 
+          style={collapseToggleStyle}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? '▶' : '◀'}
+        </button>
       </div>
 
       <nav style={navStyle}>
         <NavLink 
           to="/dashboard" 
-          style={({ isActive }) => getNavLinkStyle(isActive)}
+          style={({ isActive }) => getNavLinkStyle(isActive, collapsed)}
+          title="Review Dashboard"
         >
-          📊 Review Dashboard
+          <span style={{ fontSize: '1.1rem' }}>📊</span>
+          {!collapsed && <span style={{ marginLeft: '12px' }}>Review Dashboard</span>}
         </NavLink>
         <NavLink 
           to="/upload" 
-          style={({ isActive }) => getNavLinkStyle(isActive)}
+          style={({ isActive }) => getNavLinkStyle(isActive, collapsed)}
+          title="Ingest Cargo"
         >
-          📤 Ingest Cargo
+          <span style={{ fontSize: '1.1rem' }}>📤</span>
+          {!collapsed && <span style={{ marginLeft: '12px' }}>Ingest Cargo</span>}
         </NavLink>
         <NavLink 
           to="/audit" 
-          style={({ isActive }) => getNavLinkStyle(isActive)}
+          style={({ isActive }) => getNavLinkStyle(isActive, collapsed)}
+          title="Audit Ledger"
         >
-          📜 Audit ledger
+          <span style={{ fontSize: '1.1rem' }}>📜</span>
+          {!collapsed && <span style={{ marginLeft: '12px' }}>Audit Ledger</span>}
         </NavLink>
       </nav>
 
       <div style={footerStyle}>
-        <div style={profileCardStyle}>
+        <div style={collapsed ? collapsedProfileCardStyle : profileCardStyle}>
           <div style={avatarStyle}>
             {user.username[0].toUpperCase()}
           </div>
-          <div style={infoStyle}>
-            <div style={nameStyle}>{user.username}</div>
-            <div style={tenantStyle}>{user.tenant_name}</div>
-            <div style={roleBadgeStyle(user.role)}>{user.role}</div>
-          </div>
+          {!collapsed && (
+            <div style={infoStyle}>
+              <div style={nameStyle}>{user.username}</div>
+              <div style={tenantStyle}>{user.tenant_name}</div>
+              <div style={roleBadgeStyle(user.role)}>{user.role}</div>
+            </div>
+          )}
         </div>
-        <button onClick={handleLogout} style={logoutButtonStyle}>
-          🚪 Log Out
+        <button onClick={handleLogout} style={collapsed ? collapsedLogoutButtonStyle : logoutButtonStyle} title="Log Out">
+          <span>🚪</span>
+          {!collapsed && <span style={{ marginLeft: '8px' }}>Log Out</span>}
         </button>
       </div>
     </aside>
   );
 }
 
-
+// Inline CSS for structures
 const logoContainerStyle = {
   display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: '36px',
+  position: 'relative'
+};
+
+const logoContainerCollapsedStyle = {
+  display: 'flex',
   flexDirection: 'column',
-  marginBottom: '40px',
+  alignItems: 'center',
+  gap: '12px',
+  marginBottom: '36px',
   position: 'relative'
 };
 
@@ -75,47 +107,61 @@ const logoGlowStyle = {
   left: '-10px',
   width: '60px',
   height: '60px',
-  background: 'radial-gradient(circle, rgba(0,242,254,0.15) 0%, rgba(0,0,0,0) 70%)',
+  background: 'radial-gradient(circle, rgba(16,185,129,0.1) 0%, rgba(0,0,0,0) 70%)',
   pointerEvents: 'none'
 };
 
 const logoTextStyle = {
-  fontSize: '1.4rem',
+  fontSize: '1.25rem',
   fontWeight: '700',
   letterSpacing: '-0.02em',
-  background: 'linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 100%)',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent'
+  color: 'var(--accent-primary)'
 };
 
 const logoSubTextStyle = {
-  fontSize: '0.75rem',
+  fontSize: '0.7rem',
   fontWeight: '600',
   textTransform: 'uppercase',
   letterSpacing: '0.1em',
   color: 'var(--text-muted)',
-  marginTop: '2px'
+  marginTop: '1px'
+};
+
+const collapseToggleStyle = {
+  backgroundColor: 'rgba(255,255,255,0.03)',
+  border: '1px solid var(--border-color)',
+  color: 'var(--text-secondary)',
+  borderRadius: '4px',
+  width: '24px',
+  height: '24px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '0.65rem',
+  cursor: 'pointer',
+  transition: 'var(--transition)'
 };
 
 const navStyle = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '8px',
+  gap: '6px',
   flex: 1
 };
 
-function getNavLinkStyle(isActive) {
+function getNavLinkStyle(isActive, collapsed) {
   return {
     display: 'flex',
     alignItems: 'center',
-    padding: '12px 16px',
+    justifyContent: collapsed ? 'center' : 'flex-start',
+    padding: '10px 14px',
     borderRadius: 'var(--radius-sm)',
     color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
     backgroundColor: isActive ? 'var(--bg-tertiary)' : 'transparent',
     border: isActive ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
     textDecoration: 'none',
     fontWeight: isActive ? '600' : '400',
-    fontSize: '0.95rem',
+    fontSize: '0.9rem',
     transition: 'var(--transition)'
   };
 }
@@ -123,33 +169,42 @@ function getNavLinkStyle(isActive) {
 const footerStyle = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '16px',
+  gap: '12px',
   borderTop: '1px solid var(--border-color)',
-  paddingTop: '20px'
+  paddingTop: '16px'
 };
 
 const profileCardStyle = {
   display: 'flex',
   alignItems: 'center',
-  gap: '12px',
-  background: 'rgba(255,255,255,0.02)',
-  padding: '12px',
+  gap: '10px',
+  background: 'rgba(255,255,255,0.01)',
+  padding: '10px',
   borderRadius: 'var(--radius-sm)',
   border: '1px solid var(--border-color)'
 };
 
+const collapsedProfileCardStyle = {
+  display: 'flex',
+  justifyContent: 'center',
+  background: 'transparent',
+  padding: '4px 0',
+  border: 'none'
+};
+
 const avatarStyle = {
-  width: '40px',
-  height: '40px',
+  width: '36px',
+  height: '36px',
   borderRadius: '50%',
-  background: 'linear-gradient(135deg, var(--accent-blue) 0%, #312e81 100%)',
-  color: '#fff',
+  background: 'linear-gradient(135deg, var(--bg-tertiary) 0%, #1e1b4b 100%)',
+  color: 'var(--accent-primary)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   fontWeight: '600',
-  fontSize: '1.1rem',
-  border: '1px solid rgba(255,255,255,0.1)'
+  fontSize: '1rem',
+  border: '1px solid var(--border-color)',
+  flexShrink: 0
 };
 
 const infoStyle = {
@@ -161,7 +216,7 @@ const infoStyle = {
 };
 
 const nameStyle = {
-  fontSize: '0.9rem',
+  fontSize: '0.85rem',
   fontWeight: '600',
   color: 'var(--text-primary)',
   whiteSpace: 'nowrap',
@@ -170,7 +225,7 @@ const nameStyle = {
 };
 
 const tenantStyle = {
-  fontSize: '0.75rem',
+  fontSize: '0.7rem',
   color: 'var(--text-secondary)',
   whiteSpace: 'nowrap',
   overflow: 'hidden',
@@ -182,14 +237,14 @@ function roleBadgeStyle(role) {
   return {
     display: 'inline-block',
     alignSelf: 'flex-start',
-    fontSize: '0.65rem',
+    fontSize: '0.6rem',
     fontWeight: '700',
-    padding: '2px 6px',
-    borderRadius: '4px',
-    backgroundColor: isAdmin ? 'rgba(244,63,94,0.15)' : 'rgba(0,242,254,0.15)',
-    color: isAdmin ? 'var(--accent-rose)' : 'var(--accent-cyan)',
+    padding: '1px 5px',
+    borderRadius: '3px',
+    backgroundColor: isAdmin ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
+    color: isAdmin ? 'var(--accent-rose)' : 'var(--accent-emerald)',
     textTransform: 'uppercase',
-    marginTop: '2px'
+    marginTop: '1px'
   };
 }
 
@@ -197,14 +252,27 @@ const logoutButtonStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: '8px',
-  padding: '10px',
-  fontSize: '0.9rem',
+  padding: '8px',
+  fontSize: '0.85rem',
   color: 'var(--text-secondary)',
   border: '1px solid var(--border-color)',
   borderRadius: 'var(--radius-sm)',
   width: '100%',
   fontWeight: '500',
   backgroundColor: 'rgba(255,255,255,0.01)',
+  transition: 'var(--transition)'
+};
+
+const collapsedLogoutButtonStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '8px',
+  fontSize: '1rem',
+  color: 'var(--text-secondary)',
+  border: 'none',
+  borderRadius: 'var(--radius-sm)',
+  width: '100%',
+  backgroundColor: 'transparent',
   transition: 'var(--transition)'
 };

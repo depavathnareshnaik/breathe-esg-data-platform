@@ -10,13 +10,15 @@ import { auth } from './services/api';
 
 // Guard component checking if a token is present in localStorage
 function ProtectedRoute({ children }) {
+  const [collapsed, setCollapsed] = React.useState(false);
+
   if (!auth.isAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
   return (
     <div className="app-container">
-      <Sidebar />
-      <main className="main-content">
+      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      <main className={`main-content ${collapsed ? 'sidebar-collapsed' : ''}`}>
         {children}
       </main>
     </div>

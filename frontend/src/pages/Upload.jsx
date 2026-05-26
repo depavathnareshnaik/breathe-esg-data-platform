@@ -63,7 +63,6 @@ export default function Upload() {
     }
   };
 
-  // Helper description of the chosen format
   const getFormatDescription = () => {
     switch (sourceType) {
       case 'SAP':
@@ -81,7 +80,30 @@ export default function Upload() {
     <div className="animated">
       <div className="mb-40">
         <h1>Ingest Cargo</h1>
-        <p>Upload corporate data outputs to parse, normalize, and run compliance validation audits.</p>
+        <p style={{ color: 'var(--text-secondary)' }}>Upload corporate data outputs to parse, normalize, and run compliance validation audits.</p>
+      </div>
+
+      {/* Guided Step Indicator */}
+      <div className="step-indicator">
+        <div className="step-item active">
+          <div className="step-number">1</div>
+          <span>Upload</span>
+        </div>
+        <div className="step-separator"></div>
+        <div className={`step-item ${result ? 'active' : ''}`}>
+          <div className="step-number">2</div>
+          <span>Normalize</span>
+        </div>
+        <div className="step-separator"></div>
+        <div className={`step-item ${result ? 'active' : ''}`}>
+          <div className="step-number">3</div>
+          <span>Review</span>
+        </div>
+        <div className="step-separator"></div>
+        <div className="step-item">
+          <div className="step-number">4</div>
+          <span>Approve</span>
+        </div>
       </div>
 
       <div className="grid-2">
@@ -133,7 +155,7 @@ export default function Upload() {
                         setResult(null);
                       }}
                       disabled={loading}
-                      style={{ marginRight: '8px' }}
+                      style={{ display: 'none' }}
                     />
                     {type === 'SAP' && 'SAP ERP'}
                     {type === 'UTILITY' && 'Utility Bills'}
@@ -144,11 +166,11 @@ export default function Upload() {
             </div>
 
             <div style={formatBoxStyle}>
-              <strong style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>Expected Columns:</strong>
-              <p style={{ fontSize: '0.8rem', marginTop: '4px', lineHeight: '1.4' }}>{getFormatDescription()}</p>
+              <strong style={{ fontSize: '0.8rem', color: 'var(--text-primary)' }}>Expected Columns:</strong>
+              <p style={{ fontSize: '0.8rem', marginTop: '4px', lineHeight: '1.4', color: 'var(--text-secondary)' }}>{getFormatDescription()}</p>
             </div>
 
-            <div className="form-group" style={{ marginBottom: '30px' }}>
+            <div className="form-group" style={{ marginBottom: '20px' }}>
               <label className="form-label" htmlFor="csv-file-input">Select CSV Export</label>
               <input
                 type="file"
@@ -161,10 +183,32 @@ export default function Upload() {
               />
             </div>
 
+            {/* File Selected Badge */}
+            {file && (
+              <div style={fileBadgeStyle}>
+                <span>📄 {file.name} ({(file.size / 1024).toFixed(1)} KB)</span>
+                <button type="button" onClick={() => {
+                  setFile(null);
+                  document.getElementById('csv-file-input').value = '';
+                }} style={removeFileButtonStyle}>✕</button>
+              </div>
+            )}
+
+            {/* Upload progress */}
+            {loading && (
+              <div style={progressContainerStyle}>
+                <div style={progressBarStyle}>
+                  <div style={progressBarFillStyle}></div>
+                </div>
+                <p style={progressTextStyle}>Ingesting records and executing validation rules...</p>
+              </div>
+            )}
+
             <button
               type="submit"
               className="btn btn-primary w-full"
               disabled={loading || !file}
+              style={{ marginTop: '10px' }}
             >
               {loading ? 'Ingesting Data...' : 'Start Ingest & Normalize'}
             </button>
@@ -186,12 +230,13 @@ export default function Upload() {
                 <span style={statLabelStyle}>Source Profile:</span>
                 <span style={statValueStyle}>{result.source_type}</span>
               </div>
-              <div style={statRowStyle}>
-                <span style={statLabelStyle}>Total Records Parsed:</span>
-                <span style={statValueStyle}>{result.row_count}</span>
-              </div>
               
+              {/* Better batch summary cards */}
               <div style={statsSplitStyle}>
+                <div style={statBoxStyle('var(--text-secondary)')}>
+                  <div style={statNumberStyle}>{result.row_count}</div>
+                  <div style={statLabelStyle}>Total Records</div>
+                </div>
                 <div style={statBoxStyle('var(--accent-cyan)')}>
                   <div style={statNumberStyle}>{result.normalized_count}</div>
                   <div style={statLabelStyle}>Normalized Clean</div>
@@ -212,7 +257,7 @@ export default function Upload() {
             <div className="glass-card" style={emptyResultCardStyle}>
               <span style={{ fontSize: '2.5rem', marginBottom: '12px' }}>📊</span>
               <h4>Batch Report Summary</h4>
-              <p style={{ fontSize: '0.85rem', textAlign: 'center', marginTop: '4px' }}>
+              <p style={{ fontSize: '0.85rem', textAlign: 'center', marginTop: '6px', color: 'var(--text-secondary)' }}>
                 Once you select and upload a data export file, the batch metrics profiling will show up here.
               </p>
             </div>
@@ -223,11 +268,12 @@ export default function Upload() {
   );
 }
 
-// Styles for custom elements on the Ingestion screen
+// Inline Styles
 const radioGroupStyle = {
   display: 'flex',
-  gap: '12px',
-  marginTop: '8px'
+  gap: '10px',
+  marginTop: '6px',
+  marginBottom: '16px'
 };
 
 function radioLabelStyle(isSelected) {
@@ -236,28 +282,80 @@ function radioLabelStyle(isSelected) {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '12px',
+    padding: '10px',
     borderRadius: 'var(--radius-sm)',
-    border: isSelected ? '1px solid var(--border-focus)' : '1px solid var(--border-color)',
-    backgroundColor: isSelected ? 'rgba(0, 242, 254, 0.05)' : 'rgba(255, 255, 255, 0.01)',
+    border: isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
+    backgroundColor: isSelected ? 'rgba(16, 185, 129, 0.06)' : 'var(--bg-tertiary)',
     cursor: 'pointer',
     fontWeight: isSelected ? '600' : '400',
     fontSize: '0.85rem',
     color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
-    transition: 'var(--transition)'
+    transition: 'var(--transition)',
+    textAlign: 'center'
   };
 }
 
 const formatBoxStyle = {
-  backgroundColor: 'rgba(0, 0, 0, 0.2)',
-  border: '1px dashed var(--border-color)',
-  padding: '12px 16px',
+  backgroundColor: 'rgba(0, 0, 0, 0.15)',
+  border: '1px solid var(--border-color)',
+  padding: '12px 14px',
   borderRadius: 'var(--radius-sm)',
-  marginBottom: '20px'
+  marginBottom: '16px'
+};
+
+const fileBadgeStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '8px 12px',
+  backgroundColor: 'var(--bg-tertiary)',
+  border: '1px solid var(--border-color)',
+  borderRadius: 'var(--radius-sm)',
+  fontSize: '0.85rem',
+  color: 'var(--text-primary)',
+  marginBottom: '16px'
+};
+
+const removeFileButtonStyle = {
+  color: 'var(--accent-rose)',
+  fontSize: '0.9rem',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  padding: '0 4px'
+};
+
+const progressContainerStyle = {
+  marginBottom: '16px'
+};
+
+const progressBarStyle = {
+  width: '100%',
+  height: '6px',
+  backgroundColor: 'var(--bg-tertiary)',
+  borderRadius: '3px',
+  overflow: 'hidden'
+};
+
+const progressBarFillStyle = {
+  height: '100%',
+  width: '75%',
+  backgroundColor: 'var(--accent-primary)',
+  animation: 'shimmer 1.5s infinite linear',
+  backgroundImage: 'linear-gradient(90deg, var(--accent-primary) 0%, #34d399 50%, var(--accent-primary) 100%)',
+  backgroundSize: '200% 100%'
+};
+
+const progressTextStyle = {
+  fontSize: '0.75rem',
+  color: 'var(--text-secondary)',
+  marginTop: '6px',
+  textAlign: 'center'
 };
 
 const resultCardStyle = {
-  borderColor: 'rgba(16, 185, 129, 0.3)'
+  borderColor: 'rgba(16, 185, 129, 0.2)',
+  height: '100%'
 };
 
 const emptyResultCardStyle = {
@@ -267,20 +365,21 @@ const emptyResultCardStyle = {
   alignItems: 'center',
   justifyContent: 'center',
   borderStyle: 'dashed',
-  opacity: 0.6
+  borderColor: 'var(--border-color)',
+  padding: '60px 24px',
+  color: 'var(--text-muted)'
 };
 
 const statRowStyle = {
   display: 'flex',
-  justifyContent: 'between',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
-  padding: '12px 0',
-  fontSize: '0.9rem'
+  justifyContent: 'space-between',
+  borderBottom: '1px solid var(--border-color)',
+  padding: '10px 0',
+  fontSize: '0.85rem'
 };
 
 const statLabelStyle = {
-  color: 'var(--text-secondary)',
-  flex: 1
+  color: 'var(--text-secondary)'
 };
 
 const statValueStyle = {
@@ -289,25 +388,28 @@ const statValueStyle = {
 };
 
 const statsSplitStyle = {
-  display: 'flex',
-  gap: '16px',
-  marginTop: '24px'
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr 1fr',
+  gap: '12px',
+  marginTop: '20px'
 };
 
-function statBoxStyle(color) {
+function statBoxStyle(borderColor) {
   return {
-    flex: 1,
-    padding: '16px',
+    padding: '14px 10px',
     borderRadius: 'var(--radius-sm)',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    borderTop: `3px solid ${color}`,
-    textAlign: 'center'
+    backgroundColor: 'var(--bg-tertiary)',
+    borderTop: `3px solid ${borderColor}`,
+    textAlign: 'center',
+    borderLeft: '1px solid var(--border-color)',
+    borderRight: '1px solid var(--border-color)',
+    borderBottom: '1px solid var(--border-color)'
   };
 }
 
 const statNumberStyle = {
-  fontSize: '1.5rem',
+  fontSize: '1.35rem',
   fontWeight: '700',
   color: 'var(--text-primary)',
-  marginBottom: '4px'
+  marginBottom: '2px'
 };
