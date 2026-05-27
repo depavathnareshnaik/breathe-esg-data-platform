@@ -12,4 +12,4 @@ echo "==> Seeding database..."
 python manage.py seed_data
 
 echo "==> Starting web server..."
-gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --access-logfile - --error-logfile - --log-level debug
+gunicorn core.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --error-logfile - --log-level debug
