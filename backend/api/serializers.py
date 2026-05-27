@@ -8,13 +8,31 @@ class TenantSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'created_at']
 
 class UserSerializer(serializers.ModelSerializer):
-    tenant_name = serializers.CharField(source='profile.tenant.name', read_only=True)
-    tenant_id = serializers.UUIDField(source='profile.tenant.id', read_only=True)
-    role = serializers.CharField(source='profile.role', read_only=True)
+    tenant_name = serializers.SerializerMethodField()
+    tenant_id = serializers.SerializerMethodField()
+    role = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'tenant_name', 'tenant_id', 'role']
+
+    def get_tenant_name(self, obj):
+        try:
+            return obj.profile.tenant.name
+        except Exception:
+            return None
+
+    def get_tenant_id(self, obj):
+        try:
+            return obj.profile.tenant.id
+        except Exception:
+            return None
+
+    def get_role(self, obj):
+        try:
+            return obj.profile.role
+        except Exception:
+            return None
 
 class IngestionBatchSerializer(serializers.ModelSerializer):
     uploaded_by_username = serializers.CharField(source='uploaded_by.username', read_only=True)

@@ -18,7 +18,7 @@ from django.contrib.auth.models import User
 if not User.objects.exists():
     from django.core.management import call_command
     print('No users found. Seeding initial data...')
-    call_command('loaddata', 'seed_data.json')
+    call_command('seed_data')
 else:
     print('Database already initialized. Skipping seeding.')
 "
