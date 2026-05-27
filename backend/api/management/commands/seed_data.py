@@ -48,10 +48,9 @@ class Command(BaseCommand):
                 username=u_info['username'],
                 email=u_info['email']
             )
-            if created:
-                user.set_password(u_info['password'])
-                user.is_staff = u_info['is_staff']
-                user.save()
+            user.set_password(u_info['password'])
+            user.is_staff = u_info['is_staff']
+            user.save()
             
             # Create or update profile
             profile, _ = UserProfile.objects.get_or_create(user=user, defaults={
