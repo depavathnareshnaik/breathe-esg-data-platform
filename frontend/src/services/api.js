@@ -34,7 +34,11 @@ async function apiRequest(endpoint, options = {}) {
     headers['Content-Type'] = 'application/json';
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const cleanBaseUrl = API_BASE_URL.replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.replace(/^\/+/, '');
+  const url = `${cleanBaseUrl}/${cleanEndpoint}`;
+
+  const response = await fetch(url, {
     ...options,
     headers
   });
