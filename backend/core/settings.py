@@ -181,7 +181,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 
 cors_origins = os.getenv('CORS_ALLOWED_ORIGINS')
 if cors_origins:
-    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
+    CORS_ALLOWED_ORIGINS = [origin.strip().rstrip('/') for origin in cors_origins.split(',') if origin.strip()]
     CORS_ALLOW_ALL_ORIGINS = False
 else:
     CORS_ALLOW_ALL_ORIGINS = True
